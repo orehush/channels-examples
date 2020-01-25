@@ -1,6 +1,5 @@
 import asyncio
 import json
-import datetime
 from aiohttp import ClientSession
 from channels.generic.http import AsyncHttpConsumer
 from .constants import BLOGS
@@ -12,7 +11,6 @@ class NewsCollectorAsyncConsumer(AsyncHttpConsumer):
     """
 
     async def handle(self, body):
-
         # Adapted from:
         # "Making 1 million requests with python-aiohttp"
         # https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html
@@ -24,18 +22,14 @@ class NewsCollectorAsyncConsumer(AsyncHttpConsumer):
         loop = asyncio.get_event_loop()
 
         # aiohttp allows a ClientSession object to link all requests together
-        t0 = datetime.datetime.now()
         async with ClientSession() as session:
             for name, url in BLOGS.items():
-                print('Start downloading "%s"' % name)
                 # Launch a coroutine for each URL fetch
                 task = loop.create_task(fetch(url, session))
                 tasks.append(task)
 
             # Wait on, and then gather, all responses
             responses = await asyncio.gather(*tasks)
-            dt = (datetime.datetime.now() - t0).total_seconds()
-            print('All downloads completed; elapsed time: {} [s]'.format(dt))
 
         # asyncio.gather returns results in the order of the original sequence,
         # so we can safely zip these together.
